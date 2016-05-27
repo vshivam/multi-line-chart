@@ -1,0 +1,47 @@
+body {
+  font: 10px sans-serif;
+}
+
+#content{
+  max-width: 750px;
+}
+
+#chart-container{
+  width: 83%;
+  float: right;
+}
+
+#countries-list-container{
+  width: 17%;
+}
+div#chart-container{
+  max-width:
+}
+path {
+  fill: none;
+}
+
+.axis line {
+    fill: none;
+    stroke: gray;
+}
+
+li.country_label{
+  font-family: curator-bold;
+  color: #333333;
+  font-size: 13px;
+}
+
+/**
+ul li { display:inline; }
+**/
+
+@font-face {
+    font-family: 'curator-bold'; /*a name to be used later*/
+    src: url('../fonts/Curator Head ST Bold.otf'); /*URL to font*/
+}
+
+@font-face {
+    font-family: 'curator-regular'; /*a name to be used later*/
+    src: url('../fonts/Curator Head ST Regular.otf'); /*URL to font*/
+}
