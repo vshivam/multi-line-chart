@@ -3,15 +3,17 @@ body {
 }
 
 #content{
+  margin: auto;
   max-width: 750px;
 }
 
 #chart-container{
   width: 83%;
-  float: right;
+  float: left;
 }
 
 #countries-list-container{
+  float: left;
   width: 17%;
 }
 div#chart-container{
