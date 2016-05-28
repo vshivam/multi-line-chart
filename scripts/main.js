@@ -104,8 +104,20 @@ Chart = {
     var that = this;
 		this.svg = d3.select("#chart-container").append("svg")
 			.attr("viewBox", "0 0 " + (this.width + this.margin.left + this.margin.right) + " " + (this.height + this.margin.top + this.margin.bottom))
+      .on("click", function(){
+          var coords = d3.mouse(this);
+          console.log(coords);
+          // var hoverLineXOffset = that.margin.left + $('#chart-container').offset().left;
+          // var hoverLineYOffset = that.margin.top + $('#chart-container').offset().top;
+          var val = {
+            x: that.xScale.invert(coords[0]),
+            y: that.yScale.invert(coords[1])
+          }
+          console.log(val);
+          that.drawVerticalLine(coords[0]);
+      })
 			.append("g")
-			.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+			// .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
     this.data.forEach(function(d){
       d3.select('#countries-list')
@@ -179,9 +191,8 @@ Chart = {
     this.data = Model.getData();
     this.updateScale();
 
-    var svg = d3.select("#chart-container");
     this.data.forEach(function(d){
-      svg.select("path[data-name=" + d.name + "]")
+      that.svg.select("path[data-name=" + d.name + "]")
          .transition()
          .ease("sin-in-out")
          .duration(750)
@@ -190,7 +201,7 @@ Chart = {
 	       });
     });
 
-    var gy = svg.select(".y.axis")
+    var gy = this.svg.select(".y.axis")
           .transition()
           .duration(1000)
           .call(this.yAxis)
@@ -207,6 +218,31 @@ Chart = {
     $("path[data-name=" + country_name + "]").toggle();
     Octopus.toggleVisibility(country_name);
     this.redraw();
+  },
+
+  drawVerticalLine : function(x){
+    if(typeof this.verticalLine === 'undefined'){
+      this.verticalLine = this.svg.append('line');
+    }
+    console.log(x);
+    this.verticalLine
+    .attr({
+      'x1' : x,
+      'y1' : 0,
+      'x2' : x,
+      'y2' : this.height,
+    })
+    .attr("stroke", "steelblue")
+    .attr('class', 'verticalLine');
+
+    /*
+    circle = graph.append("circle")
+        .attr("opacity", 0)
+        .attr({
+        r: 6,
+        fill: 'darkred'
+    });
+    */
   }
 }
 
