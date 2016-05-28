@@ -34,6 +34,12 @@ li.country_label{
   font-size: 13px;
 }
 
+text{
+  font-family : curator-regular;
+  font-size: '13px';
+  fill : #333333;
+}
+
 /**
 ul li { display:inline; }
 **/

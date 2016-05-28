@@ -86,7 +86,7 @@ Chart = {
 		this.yAxis = d3.svg.axis()
 			.scale(this.yScale)
 			.ticks(7)
-			.tickSize(this.width, 0)
+			.tickSize(this.width)
 			.orient("right");
 
 		this.line = d3.svg.line()
@@ -129,10 +129,7 @@ Chart = {
 
 		gy.selectAll("text")
 			.attr("x", 4)
-			.attr("dy", -4)
-			.attr('font-family', "curator-regular")
-			.attr('font-size', '13px')
-			.attr('fill', '#333333');
+			.attr("dy", -4);
 
 		var country = this.svg.selectAll(".country")
 			.data(this.data)
@@ -168,11 +165,7 @@ Chart = {
 		]);
 
 		this.yScale.domain([
-      d3.min(that.data, function(c) {
-        return d3.min(c.values, function(v) {
-          return v.rice;
-        });
-      }),
+      0,
       d3.max(that.data, function(c) {
 				return d3.max(c.values, function(v) {
 					return v.rice;
@@ -188,7 +181,6 @@ Chart = {
 
     var svg = d3.select("#chart-container");
     this.data.forEach(function(d){
-      console.log(d.name);
       svg.select("path[data-name=" + d.name + "]")
          .transition()
          .ease("sin-in-out")
@@ -198,11 +190,17 @@ Chart = {
 	       });
     });
 
-    svg.select(".y.axis")
+    var gy = svg.select(".y.axis")
           .transition()
-          .duration(750)
-          .ease("sin-in-out")
-          .call(this.yAxis);
+          .duration(1000)
+          .call(this.yAxis)
+          .selectAll("text") // cancel transition on customized attributes
+          .tween("attr.x", null)
+          .tween("attr.dy", null);
+
+    $('g.y.axis').find('text')
+    .attr("x", 4)
+    .attr("dy", -4);
   },
 
   toggleVisibility : function(country_name){
