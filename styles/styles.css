@@ -9,6 +9,12 @@
     }
 
 }
+
+#content{
+  margin: auto;
+  max-width: 750px;
+}
+
 #header{
   font-family: curator-bold;
   font-size: 21px;
@@ -21,11 +27,6 @@
   font-size: 16px;
   line-height: 21px;
   color: #333333;
-}
-
-#content{
-  margin: auto;
-  max-width: 750px;
 }
 
 #chart-container{
@@ -53,6 +54,12 @@ path {
   font-size: 13px;
 }
 
+text, .regular-text{
+  font-family : curator-regular;
+  font-size: '13px';
+  fill : #333333;
+}
+
 li.country_label{
   list-style:none;
   margin-top: 10px;
@@ -75,12 +82,6 @@ span[data-name="Thailand"]{
 
 .faded{
   color: #dddddd;
-}
-
-text{
-  font-family : curator-regular;
-  font-size: '13px';
-  fill : #333333;
 }
 
 ul{

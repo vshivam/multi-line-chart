@@ -68,19 +68,24 @@ Chart = {
 		this.paths = [];
 		this.circleSvgMap = {};
     this.data = Octopus.getData();
+		//margin values for the svg
 		this.margin = {
-				top: 50,
+				top: 20,
 				right: 20,
 				bottom: 20,
-				left: 20
+				left: 0
 			};
 		this.width = 622.5 - this.margin.left - this.margin.right;
 		this.height = 300 - this.margin.top - this.margin.bottom;
+		//Set an initial translate value. This value is used to
+		//translate ui elements along the x_axis
+		this.translate_x = 50;
+
 		this.xScale = d3.scale.linear()
-			.range([0, this.width]);
+			.range([0, this.width-this.translate_x]);
 		this.yScale = d3.scale.linear()
 			.range([this.height, 0]);
-    this.updateScale();
+    this.updateScaleDomains();
 
     this.xAxis = d3.svg.axis()
     .scale(this.xScale)
@@ -91,6 +96,7 @@ Chart = {
 			.ticks(7)
 			.tickSize(this.width)
 			.orient("right");
+
 		this.line = d3.svg.line()
 			.interpolate("linear")
 			.x(function(d) {
@@ -99,6 +105,7 @@ Chart = {
 			.y(function(d) {
 				return this.yScale(d.rice);
 			});
+
 		this.render();
 	},
 
@@ -107,16 +114,20 @@ Chart = {
 		this.svg = d3.select("#chart-container")
 			.append("svg")
 			.attr("width", this.width + this.margin.left + this.margin.right)
-	 		.attr("height", this.height + this.margin.top + this.margin.bottom)
+			.attr("height", this.height + this.margin.top + this.margin.bottom)
 			// .attr("viewBox", "0 0 " + (this.width + this.margin.left + this.margin.right) + " " + (this.height + this.margin.top + this.margin.bottom))
       .on("click", function(){
           var coords = d3.mouse(this);
-          var val = {
-            x: that.xScale.invert(coords[0]),
-            y: that.yScale.invert(coords[1])
-          }
-          that.drawVerticalLine(coords[0]);
-					that.drawCircles(coords);
+					console.log(coords[0]);
+					if(coords[0] > that.translate_x){
+						//Since the whole graph has been tranlated along x axis,
+						//we should only draw vertical line if the x value
+						//is greater than the translate_x value
+						that.drawVerticalLine(coords[0]);
+						that.drawCircles(coords);
+					} else {
+						return;
+					}
       })
 			.append("g")
 			.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
@@ -132,7 +143,7 @@ Chart = {
     });
 		var gx = this.svg.append("g")
 			.attr("class", "x axis")
-      .attr('transform', 'translate(0,' + (this.height) + ')')
+      .attr('transform', 'translate('+ (this.translate_x) + ',' + (this.height) + ')')
 			.call(this.xAxis);
 		var gy = this.svg.append("g")
 			.attr("class", "y axis")
@@ -145,6 +156,7 @@ Chart = {
 			.enter()
 			.append("g")
 			.attr("class", "country")
+			.attr("transform", "translate(50, 0)");
 		this.paths = country.append("path")
 			.attr("class", "line")
 			.attr("d", function(d) {
@@ -155,10 +167,76 @@ Chart = {
 			})
 			.attr('stroke-width', '2pt')
 			.attr('stroke', function(d) {return that.getLineColor(d.name)});
+
+			d3.select(window).on('resize', function(){
+				var windowWidth = parseInt(d3.select("body").style("width"));
+				that.width = parseInt(d3.select("#chart-container").style("width")) - that.margin.left - that.margin.right;
+				that.height = parseInt(d3.select("#chart-container").style("height")) - that.margin.top - that.margin.bottom;
+				that.updateScales();
+				that.updateScaleDomains();
+				that.redrawXAxis(windowWidth);
+				that.redrawYAxis();
+				that.redrawLines();
+			});
 	},
 
-  updateScale : function(){
+	updateScales : function(){
+		var width = this.width - this.translate_x;
+		this.xScale = d3.scale.linear()
+			.range([0, width]);
+		this.yScale = d3.scale.linear()
+			.range([this.height, 0]);
+	},
+
+	redrawXAxis : function(width){
+		if(width < 450){
+			this.xAxis = d3.svg.axis()
+			.scale(this.xScale)
+			.orient("bottom")
+			.tickValues([2000, 2010]);
+
+			this.svg.select(".x.axis")
+			.transition()
+			.ease("sin-in-out")
+			.duration(100)
+			.call(this.xAxis);
+		} else {
+			this.xAxis = d3.svg.axis()
+			.scale(this.xScale)
+			.orient("bottom")
+			.ticks(5);
+
+			this.svg.select(".x.axis")
+			.transition()
+			.ease("sin-in-out")
+			.duration(100)
+			.call(this.xAxis);
+		}
+	},
+
+	redrawYAxis : function(){
+		this.yAxis = d3.svg.axis()
+			.scale(this.yScale)
+			.ticks(7)
+			.tickSize(this.width)
+			.orient("right");
+
+		var gy = this.svg.select(".y.axis")
+          .transition()
+          .duration(1000)
+          .call(this.yAxis)
+          .selectAll("text")
+          .tween("attr.x", null)
+          .tween("attr.dy", null);
+
+    $('.y.axis').find('text')
+    .attr("x", 4)
+    .attr("dy", -4);
+	},
+
+  updateScaleDomains : function(){
     var that = this;
+		this.data = Octopus.getData();
     this.xScale.domain([
 			d3.min(this.data, function(c) {
 				return d3.min(c.values, function(v) {
@@ -182,12 +260,8 @@ Chart = {
 		]);
   },
 
-  redraw : function(){
-    var that = this;
-    this.data = Model.getData();
-    this.updateScale();
-		this.hideCircles();
-		this.hideVerticalLine();
+	redrawLines : function(){
+		var that = this;
     this.data.forEach(function(d){
       that.svg.select("path[data-name=" + d.name + "]")
          .transition()
@@ -197,21 +271,19 @@ Chart = {
    				    return that.line(d.values);
 	       });
     });
-    var gy = this.svg.select(".y.axis")
-          .transition()
-          .duration(1000)
-          .call(this.yAxis)
-          .selectAll("text") // cancel transition on customized attributes
-          .tween("attr.x", null)
-          .tween("attr.dy", null);
+	},
 
-    $('g.y.axis').find('text')
-    .attr("x", 4)
-    .attr("dy", -4);
+  redraw : function(){
+		this.updateScaleDomains();
+		this.redrawYAxis();
+		this.hideCircles();
+		this.hideVerticalLine();
+		this.redrawLines();
   },
 
   toggleCountryVisibility : function(country_name){
-    $("path[data-name=" + country_name + "]").toggle();
+    $("path[data-name=" + country_name + "]")
+		.toggle();
 		$('li.country_label[data-name="'+ country_name+'"]')
 		.find('span.rice')
 		.toggle();
@@ -246,7 +318,7 @@ Chart = {
 
 	drawCircles : function(coords){
 		var that = this;
-		var x = coords[0] - this.margin.left;
+		var x = coords[0] - this.margin.left - this.translate_x;
 		var y = coords[1] - this.margin.top;
 		this.updateYearLabel(this.xScale.invert(x));
 		this.paths.each(function(d){
@@ -282,6 +354,7 @@ Chart = {
 			.attr("cy", target_coordinate.y)
 			.attr("r", 6)
 			.attr("fill", that.getLineColor(d.name))
+			.attr("transform", "translate(50, 0)")
 			.style('display', 'inline');
 			var rice_quantity = that.yScale.invert(target_coordinate.y);
 			that.showRiceQuantity(d.name, rice_quantity);
