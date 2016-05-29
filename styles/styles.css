@@ -1,5 +1,26 @@
-body {
-  font: 10px sans-serif;
+@media only screen and (max-width: 450px) {
+    #chart-container{
+      width: 100%;
+      float: left;
+    }
+
+    li.country_label{
+      display: inline;
+    }
+
+}
+#header{
+  font-family: curator-bold;
+  font-size: 21px;
+  color: #333333;
+}
+
+#description{
+  width: 83%;
+  font-family: curator-regular;
+  font-size: 16px;
+  line-height: 21px;
+  color: #333333;
 }
 
 #content{
@@ -27,9 +48,25 @@ path {
 }
 
 li.country_label{
+  list-style:none;
   font-family: curator-bold;
   color: #333333;
   font-size: 13px;
+}
+
+span[data-name="India"]{
+  font-size: 1.5em;
+  color: #FABE9C;
+}
+
+span[data-name="Vietnam"]{
+  font-size: 1.5em;
+  color: #F6AB9A;
+}
+
+span[data-name="Thailand"]{
+  font-size: 1.5em;
+  color: #FED47D;
 }
 
 text{

@@ -38,13 +38,23 @@ Model = {
 		});
 	},
 
-  toggleVisibility(country_name){
+  toggleCountryVisibility(country_name){
     this.data.forEach(function(d){
-      if(d.name === country_name){
+      if(d.name == country_name){
         d.visibility = !d.visibility;
       }
     });
-  }
+  },
+
+	getVisibility(country_name){
+		var visibility;
+		this.data.forEach(function(d){
+      if(d.name == country_name){
+        visibility = d.visibility;
+      }
+    });
+		return visibility;
+	}
 };
 
 Chart = {
@@ -118,11 +128,11 @@ Chart = {
     this.data.forEach(function(d){
       d3.select('#countries-list')
         .append('li')
-        .html('-- ' + d.name)
+        .html('<span data-name="' + d.name + '">&mdash; </span>' + d.name)
         .attr('class', 'country_label')
         .attr("data-name", d.name)
         .on("click", function(){
-          that.toggleVisibility(d.name);
+          that.toggleCountryVisibility(d.name);
         })
     });
 
@@ -186,7 +196,8 @@ Chart = {
     var that = this;
     this.data = Model.getData();
     this.updateScale();
-
+		this.hideCircles();
+		this.hideVerticalLine();
     this.data.forEach(function(d){
       that.svg.select("path[data-name=" + d.name + "]")
          .transition()
@@ -196,7 +207,6 @@ Chart = {
    				    return that.line(d.values);
 	       });
     });
-
     var gy = this.svg.select(".y.axis")
           .transition()
           .duration(1000)
@@ -210,9 +220,9 @@ Chart = {
     .attr("dy", -4);
   },
 
-  toggleVisibility : function(country_name){
+  toggleCountryVisibility : function(country_name){
     $("path[data-name=" + country_name + "]").toggle();
-    Octopus.toggleVisibility(country_name);
+    Octopus.toggleCountryVisibility(country_name);
     this.redraw();
   },
 
@@ -229,8 +239,13 @@ Chart = {
     })
     .attr("stroke", "steelblue")
 		.attr("stroke-width", "2pt")
-    .attr('class', 'verticalLine');
+    .attr('class', 'verticalLine')
+		.style('display', 'inline');
   },
+
+	hideVerticalLine : function(){
+		$('line.verticalLine').hide();
+	},
 
 	drawCircles : function(coords){
 		var that = this;
@@ -238,6 +253,9 @@ Chart = {
 		var y = coords[1];
 
 		this.paths.each(function(d){
+			if(!Octopus.getVisibility(d.name)){
+				return;
+			}
 			var pathLength = this.getTotalLength();
 			var beginning = x, end = pathLength, target_length;
 			var circle;
@@ -269,8 +287,13 @@ Chart = {
 			.attr("cx", target_coordinate.x)
 			.attr("cy", target_coordinate.y)
 			.attr("r", 6)
-			.attr("fill", that.getLineColor(d.name));
+			.attr("fill", that.getLineColor(d.name))
+			.style('display', 'inline');
 		})
+	},
+
+	hideCircles : function(){
+		$("circle").hide();
 	},
 }
 
@@ -281,15 +304,19 @@ Octopus = {
 	getData: function() {
 		return Model.getData();
 	},
-  getDataMap : function() {
-    return Model.getDataMap();
+  // getDataMap : function() {
+  //   return Model.getDataMap();
+  // },
+  // getCountryNames : function(){
+  //   return Model.getCountryNames();
+  // },
+  toggleCountryVisibility : function(country_name){
+    Model.toggleCountryVisibility(country_name);
   },
-  getCountryNames : function(){
-    return Model.getCountryNames();
-  },
-  toggleVisibility : function(country_name){
-    Model.toggleVisibility(country_name);
-  }
+
+	getVisibility : function(country_name){
+		return Model.getVisibility(country_name);
+	}
 }
 
 Octopus.init();
