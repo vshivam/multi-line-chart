@@ -47,11 +47,15 @@ path {
     stroke: gray;
 }
 
-li.country_label{
-  list-style:none;
+.bold-text{
   font-family: curator-bold;
   color: #333333;
   font-size: 13px;
+}
+
+li.country_label{
+  list-style:none;
+  margin-top: 10px;
 }
 
 span[data-name="India"]{
@@ -69,12 +73,19 @@ span[data-name="Thailand"]{
   color: #FED47D;
 }
 
+.faded{
+  color: #dddddd;
+}
+
 text{
   font-family : curator-regular;
   font-size: '13px';
   fill : #333333;
 }
 
+ul{
+  padding: 0;
+}
 /**
 ul li { display:inline; }
 **/

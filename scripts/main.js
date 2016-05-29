@@ -5,16 +5,13 @@ Model = {
 			if (error) {
 				throw error;
 			}
-
 			var all_keys = d3.keys(data[0]);
 			var country_names = all_keys.filter(function(key) {
 				return key !== 'Year';
 			});
-
 			data.forEach(function(d) {
 				d.year = +d.Year;
 			});
-
 			that.data = country_names.map(function(name) {
 				return {
 					name: name,
@@ -27,7 +24,6 @@ Model = {
 					})
 				};
 			});
-
       Chart.init();
 		});
 	},
@@ -80,7 +76,6 @@ Chart = {
 			};
 		this.width = 622.5 - this.margin.left - this.margin.right;
 		this.height = 300 - this.margin.top - this.margin.bottom;
-
 		this.xScale = d3.scale.linear()
 			.range([0, this.width]);
 		this.yScale = d3.scale.linear()
@@ -91,13 +86,11 @@ Chart = {
     .scale(this.xScale)
     .orient("bottom")
     .ticks(5);
-
 		this.yAxis = d3.svg.axis()
 			.scale(this.yScale)
 			.ticks(7)
 			.tickSize(this.width)
 			.orient("right");
-
 		this.line = d3.svg.line()
 			.interpolate("linear")
 			.x(function(d) {
@@ -106,14 +99,16 @@ Chart = {
 			.y(function(d) {
 				return this.yScale(d.rice);
 			});
-
 		this.render();
 	},
 
 	render: function() {
     var that = this;
-		this.svg = d3.select("#chart-container").append("svg")
-			.attr("viewBox", "0 0 " + (this.width + this.margin.left + this.margin.right) + " " + (this.height + this.margin.top + this.margin.bottom))
+		this.svg = d3.select("#chart-container")
+			.append("svg")
+			.attr("width", this.width + this.margin.left + this.margin.right)
+	 		.attr("height", this.height + this.margin.top + this.margin.bottom)
+			// .attr("viewBox", "0 0 " + (this.width + this.margin.left + this.margin.right) + " " + (this.height + this.margin.top + this.margin.bottom))
       .on("click", function(){
           var coords = d3.mouse(this);
           var val = {
@@ -124,37 +119,32 @@ Chart = {
 					that.drawCircles(coords);
       })
 			.append("g")
-
+			.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
     this.data.forEach(function(d){
       d3.select('#countries-list')
         .append('li')
-        .html('<span data-name="' + d.name + '">&mdash; </span>' + d.name)
-        .attr('class', 'country_label')
+        .html('<span data-name="' + d.name + '">&mdash; </span> <span class="country-name">' + d.name + '</span> <br> <span class="rice"> <span> <br>')
+        .attr('class', 'country_label bold-text')
         .attr("data-name", d.name)
         .on("click", function(){
           that.toggleCountryVisibility(d.name);
         })
     });
-
 		var gx = this.svg.append("g")
 			.attr("class", "x axis")
       .attr('transform', 'translate(0,' + (this.height) + ')')
 			.call(this.xAxis);
-
 		var gy = this.svg.append("g")
 			.attr("class", "y axis")
 			.call(this.yAxis);
-
 		gy.selectAll("text")
 			.attr("x", 4)
 			.attr("dy", -4);
-
 		var country = this.svg.selectAll(".country")
 			.data(this.data)
 			.enter()
 			.append("g")
 			.attr("class", "country")
-
 		this.paths = country.append("path")
 			.attr("class", "line")
 			.attr("d", function(d) {
@@ -222,11 +212,18 @@ Chart = {
 
   toggleCountryVisibility : function(country_name){
     $("path[data-name=" + country_name + "]").toggle();
+		$('li.country_label[data-name="'+ country_name+'"]')
+		.find('span.rice')
+		.toggle();
+		$('li.country_label[data-name="'+ country_name+'"]')
+		.find('span.country-name')
+		.toggleClass('faded');
     Octopus.toggleCountryVisibility(country_name);
     this.redraw();
   },
 
   drawVerticalLine : function(x){
+		x = x - this.margin.left;
     if(typeof this.verticalLine === 'undefined'){
       this.verticalLine = this.svg.append('line');
     }
@@ -249,9 +246,9 @@ Chart = {
 
 	drawCircles : function(coords){
 		var that = this;
-		var x = coords[0];
-		var y = coords[1];
-
+		var x = coords[0] - this.margin.left;
+		var y = coords[1] - this.margin.top;
+		this.updateYearLabel(this.xScale.invert(x));
 		this.paths.each(function(d){
 			if(!Octopus.getVisibility(d.name)){
 				return;
@@ -259,7 +256,6 @@ Chart = {
 			var pathLength = this.getTotalLength();
 			var beginning = x, end = pathLength, target_length;
 			var circle;
-
 			while(true){
 				target_length = Math.floor((beginning + end)/2);
 				var target_coordinate = this.getPointAtLength(target_length);
@@ -274,14 +270,12 @@ Chart = {
 						break;
 				}
 			}
-
 			if(typeof that.circleSvgMap[d.name] === 'undefined'){
 				circle = that.svg.append("circle");
 				that.circleSvgMap[d.name] = circle;
 			} else {
 				circle = that.circleSvgMap[d.name];
 			}
-
 			circle
 			.attr("opacity", 1)
 			.attr("cx", target_coordinate.x)
@@ -289,7 +283,23 @@ Chart = {
 			.attr("r", 6)
 			.attr("fill", that.getLineColor(d.name))
 			.style('display', 'inline');
+			var rice_quantity = that.yScale.invert(target_coordinate.y);
+			that.showRiceQuantity(d.name, rice_quantity);
+			var year = that.xScale.invert(x);
 		})
+	},
+
+	updateYearLabel : function(year){
+		year = Math.round(year);
+		$('#year').text(year);
+	},
+
+	showRiceQuantity : function(country_name, quantity){
+		quantity = Math.floor(quantity*10) / 10;
+		$('li.country_label[data-name="'+ country_name+'"]')
+		.find('span.rice')
+		.text(quantity)
+		.removeClass('hidden');
 	},
 
 	hideCircles : function(){
@@ -304,12 +314,7 @@ Octopus = {
 	getData: function() {
 		return Model.getData();
 	},
-  // getDataMap : function() {
-  //   return Model.getDataMap();
-  // },
-  // getCountryNames : function(){
-  //   return Model.getCountryNames();
-  // },
+
   toggleCountryVisibility : function(country_name){
     Model.toggleCountryVisibility(country_name);
   },
