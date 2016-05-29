@@ -13,7 +13,6 @@ Model = {
 
 			data.forEach(function(d) {
 				d.year = +d.Year;
-        d.Year = +d.Year;
 			});
 
 			that.data = country_names.map(function(name) {
@@ -60,9 +59,11 @@ Chart = {
 
 	init: function() {
     var that = this;
+		this.paths = [];
+		this.circleSvgMap = {};
     this.data = Octopus.getData();
 		this.margin = {
-				top: 20,
+				top: 50,
 				right: 20,
 				bottom: 20,
 				left: 20
@@ -71,11 +72,9 @@ Chart = {
 		this.height = 300 - this.margin.top - this.margin.bottom;
 
 		this.xScale = d3.scale.linear()
-			.range([50, this.width]);
-
+			.range([0, this.width]);
 		this.yScale = d3.scale.linear()
 			.range([this.height, 0]);
-
     this.updateScale();
 
     this.xAxis = d3.svg.axis()
@@ -90,6 +89,7 @@ Chart = {
 			.orient("right");
 
 		this.line = d3.svg.line()
+			.interpolate("linear")
 			.x(function(d) {
 				return this.xScale(d.year);
 			})
@@ -106,23 +106,19 @@ Chart = {
 			.attr("viewBox", "0 0 " + (this.width + this.margin.left + this.margin.right) + " " + (this.height + this.margin.top + this.margin.bottom))
       .on("click", function(){
           var coords = d3.mouse(this);
-          console.log(coords);
-          // var hoverLineXOffset = that.margin.left + $('#chart-container').offset().left;
-          // var hoverLineYOffset = that.margin.top + $('#chart-container').offset().top;
           var val = {
             x: that.xScale.invert(coords[0]),
             y: that.yScale.invert(coords[1])
           }
-          console.log(val);
           that.drawVerticalLine(coords[0]);
+					that.drawCircles(coords);
       })
 			.append("g")
-			// .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
     this.data.forEach(function(d){
       d3.select('#countries-list')
         .append('li')
-        .html(d.name)
+        .html('-- ' + d.name)
         .attr('class', 'country_label')
         .attr("data-name", d.name)
         .on("click", function(){
@@ -149,7 +145,7 @@ Chart = {
 			.append("g")
 			.attr("class", "country")
 
-		country.append("path")
+		this.paths = country.append("path")
 			.attr("class", "line")
 			.attr("d", function(d) {
 				return that.line(d.values);
@@ -179,10 +175,10 @@ Chart = {
 		this.yScale.domain([
       0,
       d3.max(that.data, function(c) {
-				return d3.max(c.values, function(v) {
-					return v.rice;
-				});
-			})
+        return d3.max(c.values, function(v) {
+          return v.rice;
+        });
+      })
 		]);
   },
 
@@ -224,7 +220,6 @@ Chart = {
     if(typeof this.verticalLine === 'undefined'){
       this.verticalLine = this.svg.append('line');
     }
-    console.log(x);
     this.verticalLine
     .attr({
       'x1' : x,
@@ -233,17 +228,50 @@ Chart = {
       'y2' : this.height,
     })
     .attr("stroke", "steelblue")
+		.attr("stroke-width", "2pt")
     .attr('class', 'verticalLine');
+  },
 
-    /*
-    circle = graph.append("circle")
-        .attr("opacity", 0)
-        .attr({
-        r: 6,
-        fill: 'darkred'
-    });
-    */
-  }
+	drawCircles : function(coords){
+		var that = this;
+		var x = coords[0];
+		var y = coords[1];
+
+		this.paths.each(function(d){
+			var pathLength = this.getTotalLength();
+			var beginning = x, end = pathLength, target_length;
+			var circle;
+
+			while(true){
+				target_length = Math.floor((beginning + end)/2);
+				var target_coordinate = this.getPointAtLength(target_length);
+				if ((target_length === end || target_length === beginning) && target_coordinate.x !== x) {
+					break;
+				}
+				if(target_coordinate.x > x){
+					end = target_length;
+				} else if(target_coordinate.x < x){
+					beginning = target_length;
+				} else{
+						break;
+				}
+			}
+
+			if(typeof that.circleSvgMap[d.name] === 'undefined'){
+				circle = that.svg.append("circle");
+				that.circleSvgMap[d.name] = circle;
+			} else {
+				circle = that.circleSvgMap[d.name];
+			}
+
+			circle
+			.attr("opacity", 1)
+			.attr("cx", target_coordinate.x)
+			.attr("cy", target_coordinate.y)
+			.attr("r", 6)
+			.attr("fill", that.getLineColor(d.name));
+		})
+	},
 }
 
 Octopus = {
