@@ -31,10 +31,6 @@ text, .regular-text {
   fill: #333333;
 }
 
-.year{
-  margin : 10px;
-}
-
 .dark {
   color: #333333;
 }
@@ -70,6 +66,7 @@ ul {
   z-index: 1000;
   position: absolute;
   width: 150px;
+  padding : 10px;
 }
 
 @font-face {
