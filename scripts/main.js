@@ -84,7 +84,7 @@ Chart = {
 			this.width = 622.5 - this.margin.left - this.margin.right;
 		}
 		this.height = 300 - this.margin.top - this.margin.bottom;
-		
+
 		//Set an initial translate value. This value is used to
 		//translate ui elements along the x_axis
 		this.translate_x = 50;
@@ -114,7 +114,7 @@ Chart = {
 			return this.yScale(d.rice);
 		});
 
-		//listen to window resize events. 
+		//listen to window resize events.
 		d3.select(window).on('resize', function(){
 			that.resize();
 		});
@@ -126,6 +126,11 @@ Chart = {
 			}
 			var country_name = $(this).data("name");
 			that.toggleCountryVisibility(country_name);
+		});
+
+		$(window).on( "orientationchange", function( event ) {
+  		that.hideVerticalLine();
+			that.hideCircles();
 		});
 
 		this.render();
@@ -153,7 +158,7 @@ Chart = {
 					that.popup.css({top:pos.y, left: pos.x});
 				} else {
 					if(that.popup.is(":visible")){
-						that.popup.hide();	
+						that.popup.hide();
 					}
 				}
 				that.drawVerticalLine(coords[0]);
@@ -180,7 +185,7 @@ Chart = {
 		gy.selectAll("text")
 		.attr("x", 4)
 		.attr("dy", -4);
-		
+
 		//append path for each country
 		var country = this.svg.selectAll(".country")
 		.data(this.data)
@@ -208,7 +213,7 @@ Chart = {
 				this.popup.hide();
 			}
 		}
-	}, 
+	},
 
 	resize : function(){
 		this.width = parseInt(d3.select("#chart-container").style("width")) - this.margin.left - this.margin.right;
@@ -219,12 +224,7 @@ Chart = {
 		this.redrawXAxis();
 		this.redrawYAxis();
 		this.redrawLines();
-		// If the window is resizing 
-		// the position of vertical line 
-		// and the corresponding circles becomes invalid
-		this.hideVerticalLine();
-		this.hideCircles();
-	}, 
+	},
 
 	resizeSvg : function(){
 		d3.select("svg")
@@ -343,7 +343,7 @@ Chart = {
 		.toggleClass('faded');
 
 		Octopus.toggleCountryVisibility(country_name);
-		
+
 		this.redraw();
 	},
 
@@ -445,7 +445,7 @@ Octopus = {
 
 	getVisibility : function(country_name){
 		return Model.getVisibility(country_name);
-	}, 
+	},
 
 	getPopupPosition : function(event){
 		var popup = Chart.popup;
