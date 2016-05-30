@@ -47,6 +47,7 @@ Model = {
 		this.data.forEach(function(d){
 			if(d.name == country_name){
 				visibility = d.visibility;
+				return;
 			}
 		});
 		return visibility;
@@ -69,6 +70,9 @@ Chart = {
 		this.circleSvgMap = {};
 		this.data = Octopus.getData();
 		this.popup = $('#countries-list-popup');
+		//Initialize with 3, since
+		//all 3 paths are visible at beginning
+		this.visibilityCount = 3;
 		//margin values for the svg
 		this.margin = {
 			top: 20,
@@ -90,9 +94,9 @@ Chart = {
 		this.translate_x = 50;
 
 		this.xScale = d3.scale.linear()
-		.range([0, this.width-this.translate_x]);
+		.range([0, this.width-this.translate_x]).nice();
 		this.yScale = d3.scale.linear()
-		.range([this.height, 0]);
+		.range([this.height, 0]).nice();
 		this.updateScaleDomains();
 
 		this.xAxis = d3.svg.axis()
@@ -101,7 +105,7 @@ Chart = {
 		.ticks(5);
 		this.yAxis = d3.svg.axis()
 		.scale(this.yScale)
-		.ticks(7)
+		.ticks(5)
 		.tickSize(this.width)
 		.orient("right");
 
@@ -235,9 +239,9 @@ Chart = {
 	updateScales : function(){
 		var width = this.width - this.translate_x;
 		this.xScale = d3.scale.linear()
-		.range([0, width]);
+		.range([0, width]).nice();
 		this.yScale = d3.scale.linear()
-		.range([this.height, 0]);
+		.range([this.height, 0]).nice();
 	},
 
 	redrawXAxis : function(){
@@ -269,7 +273,7 @@ Chart = {
 	redrawYAxis : function(){
 		this.yAxis = d3.svg.axis()
 		.scale(this.yScale)
-		.ticks(7)
+		.ticks(5)
 		.tickSize(this.width)
 		.orient("right");
 
@@ -334,6 +338,17 @@ Chart = {
 	},
 
 	toggleCountryVisibility : function(country_name){
+		if(Octopus.getVisibility(country_name)){
+			if(this.visibilityCount > 1){
+				this.visibilityCount--;
+			} else {
+				//Only one path is visible,
+				//so return to ensure that the chart doesnt go blank;
+				return;
+			}
+		} else {
+			this.visibilityCount++;
+		}
 		$("path[data-name=" + country_name + "]")
 		.fadeToggle();
 		$('li[data-name="'+ country_name+'"] > span.rice')
@@ -343,7 +358,6 @@ Chart = {
 		.toggleClass('faded');
 
 		Octopus.toggleCountryVisibility(country_name);
-
 		this.redraw();
 	},
 
