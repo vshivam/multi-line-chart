@@ -373,8 +373,8 @@ Chart = {
 			'x2' : x,
 			'y2' : this.height,
 		})
-		.attr("stroke", "steelblue")
-		.attr("stroke-width", "2pt")
+		.attr("stroke", "gray")
+		.attr("stroke-width", "1pt")
 		.attr('class', 'verticalLine')
 		.style('display', 'inline');
 	},
